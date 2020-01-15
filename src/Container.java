@@ -1,3 +1,6 @@
+import java.util.HashSet;
+import java.util.Set;
+
 /*
 Water containers , all identical and equipped with a virtually unlimited capacity. At any given time, a
 container holds a certain amount of liquid, and any two containers can be permanently connected by a pipe.
@@ -6,42 +9,44 @@ are connected, they become communicating vessels and from that time on they spli
  */
 public class Container {
 
-    Container[] g;
-    int n;
-    double x;
+    private Set<Container> group;
+    private double amount;
 
     public Container() {
-        g = new Container[1000];
-        g[0] = this;
-        n = 1;
-        x = 0;
+        group = new HashSet<Container>();
+        group.add(this);
+        amount = 0;
     }
 
     public double getAmount() {
-        return x;
+        return amount;
     }
 
-    public void addWater(double x) {
-        double y = x / n;
-        for (int i = 0; i < n; i++)
-            g[i].x = g[i].x + y;
-    }
-
-    public void connectTo(Container c) {
-        double z = (x * n + c.x * c.n) / (n + c.n);
-
-        for (int i = 0; i < n; i++) // for each container g[i] in first group
-            for (int j = 0; j < c.n; j++) { // for each container c.g[j] in second group
-                g[i].g[n + j] = c.g[j]; // add second to group of first
-                c.g[j].g[c.n + i] = g[i]; // add first to group of second
-            }
-
-        n += c.n;
-
-        for (int i = 0; i < n; i++) {
-            g[i].n = n;
-            g[i].x = z;
+    public void addWater(double amount) {
+        double amountPerContainer = amount / group.size();
+        for (Container c: group) {
+            c.amount += amountPerContainer;
         }
+    }
+
+    public void connectTo(Container other) {
+
+        // If they are already connected, do nothing
+        if (group == other.group) return;
+
+        int size1 = group.size();
+        int size2 = other.group.size();
+        double tot1 = amount * size1;
+        double tot2 = other.amount * size2;
+        double newAmount = (tot1 + tot2) / (size1 + size2);
+
+        // Merge the two groups
+        group.addAll(other.group);
+
+        for (Container c: other.group)
+            c.group = group;
+        for (Container c: group)
+            c.amount = newAmount;
 
     }
 }
