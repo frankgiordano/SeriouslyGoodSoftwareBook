@@ -1,5 +1,3 @@
-import java.util.HashSet;
-import java.util.Set;
 
 /*
 Water containers, all identical and equipped with a virtually unlimited capacity. At any given time, a
@@ -9,43 +7,41 @@ are connected, they become communicating vessels and from that time on they spli
  */
 public class Container {
 
-    private Group group = new Group(this);
-
-    private static class Group {
-        double amountPerContainer;
-        Set<Container> members; // #1 The set of all connected containers
-
-        public Group(Container c) {
-            members = new HashSet<Container>();
-            members.add(c);
-        }
-    }
+    private Container next = this;
+    private double amount;
 
     public double getAmount() {
-        return group.amountPerContainer;
+        updateGroup();
+        return amount;
     }
 
     public void addWater(double amount) {
-        double amountPerContainer = amount / group.members.size();
-        group.amountPerContainer = amountPerContainer;
+        this.amount += amount;
+    }
+
+    public void updateGroup() {
+        Container current = this;
+        double totalAmount = 0;
+        int groupSize = 0;
+
+        do {
+            totalAmount += current.amount;
+            groupSize++;
+            current = current.next;
+        } while (current != this); // because it is circular
+        double newAmount = totalAmount / groupSize;
+
+        current = this;
+        do {
+            current.amount = newAmount;
+            current = current.next;
+        } while (current != this);
     }
 
     public void connectTo(Container other) {
-
-        // If they are already connected, do nothing
-        if (group == other.group) return;
-
-        int size1 = group.members.size();
-        int size2 = other.group.members.size();
-        double tot1 = group.amountPerContainer * size1;
-        double tot2 = other.group.amountPerContainer * size2;
-        double newAmount = (tot1 + tot2) / (size1 + size2);
-
-        // Merge the two groups
-        group.members.addAll(other.group.members);
-        group.amountPerContainer = newAmount;
-
-        for (Container x: other.group.members)
-            x.group = group;
+        Container oldNext = next;
+        this.next = other;
+        other.next = oldNext;
     }
+
 }
