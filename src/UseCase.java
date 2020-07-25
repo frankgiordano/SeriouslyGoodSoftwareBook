@@ -11,7 +11,6 @@ public class UseCase {
         a.addWater(12);
         d.addWater(8);
         a.connectTo(b);
-        b.connectTo(c);
         System.out.println(a.getAmount() + " " + b.getAmount() + " " +
                 c.getAmount() + " " + d.getAmount());
         b.connectTo(c);
